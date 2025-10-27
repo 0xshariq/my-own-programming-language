@@ -1,49 +1,58 @@
 # This is only for learning purposes, how the programming languages works
 
-# My Own Programming Language — Keywords Reference
+## My Own Programming Language — Keywords Reference
 
 This README documents the language keywords supported by the simple compiler in `compile.js`. The compiler is minimal and produces JavaScript code; the following describes the keywords and how they are parsed/generated.
 
 Keywords
 
 - `ye` — variable declaration
-	- Syntax: `ye x = 10;`
-	- Semantics: declares a JavaScript `let` binding. The right-hand side is an expression.
+
+  - Syntax: `ye x = 10;`
+  - Semantics: declares a JavaScript `let` binding. The right-hand side is an expression.
 
 - `bol` — print statement
-	- Syntax: `bol x;` or `bol "hello";`
-	- Semantics: compiles to `console.log(...)`.
+
+  - Syntax: `bol x;` or `bol "hello";`
+  - Semantics: compiles to `console.log(...)`.
 
 - `agar` — if
-	- Syntax: `agar <condition> { ... }`
-	- Semantics: standard `if` statement. The compiler supports chained `nahitoh` (else-if) and final `warna` (else).
+
+  - Syntax: `agar <condition> { ... }`
+  - Semantics: standard `if` statement. The compiler supports chained `nahitoh` (else-if) and final `warna` (else).
 
 - `nahitoh` — else-if (chainable)
-	- Syntax: used after an `agar` block: `agar cond1 { ... } nahitoh cond2 { ... } warna { ... }`
-	- Semantics: each `nahitoh` becomes an `else if` when generating JS. Multiple `nahitoh` are supported.
+
+  - Syntax: used after an `agar` block: `agar cond1 { ... } nahitoh cond2 { ... } warna { ... }`
+  - Semantics: each `nahitoh` becomes an `else if` when generating JS. Multiple `nahitoh` are supported.
 
 - `warna` — else
-	- Syntax: follows an `agar` (and optional `nahitoh`) block: `warna { ... }`
+
+  - Syntax: follows an `agar` (and optional `nahitoh`) block: `warna { ... }`
 
 - `lagataar` — while loop
-	- Syntax: `lagataar <condition> { ... }`
-	- Semantics: compiles to a JS `while (<condition>) { ... }`.
+
+  - Syntax: `lagataar <condition> { ... }`
+  - Semantics: compiles to a JS `while (<condition>) { ... }`.
 
 - `jabtak` — basic for-like loop (simple form)
-	- Syntax (current minimal support): `jabtak <condition> { ... }`
-	- Semantics: currently compiled into a `for (; <condition> ;) { ... }` (a for-loop with empty init/update). This is a placeholder for a fuller `for` syntax and can be extended later.
+
+  - Syntax (current minimal support): `jabtak <condition> { ... }`
+  - Semantics: currently compiled into a `for (; <condition> ;) { ... }` (a for-loop with empty init/update). This is a placeholder for a fuller `for` syntax and can be extended later.
 
 - `ruk` — break
-	- Syntax: `ruk;`
-	- Semantics: compiles to `break;` inside loops.
+
+  - Syntax: `ruk;`
+  - Semantics: compiles to `break;` inside loops.
 
 - `chhod` — continue
-	- Syntax: `chhod;`
-	- Semantics: compiles to `continue;` inside loops.
+
+  - Syntax: `chhod;`
+  - Semantics: compiles to `continue;` inside loops.
 
 - `wapas` — return
-	- Syntax: `wapas <expression>;`
-	- Semantics: compiles to `return <expression>;` (useful inside functions — the compiler currently provides minimal function support).
+  - Syntax: `wapas <expression>;`
+  - Semantics: compiles to `return <expression>;` (useful inside functions — the compiler currently provides minimal function support).
 
 Literals and other tokens
 
@@ -84,10 +93,3 @@ lagataar i < 5 {
 	chhod; // continue
 }
 ```
-
-If you'd like, I can:
-- Add full `for (init; cond; update)` syntax for `jabtak`.
-- Improve expression parsing with operator precedence.
-- Add unit tests for the lexer/parser/generator.
-
-Feel free to tell me which keywords or syntax you'd like next and I'll implement them and update this README. 

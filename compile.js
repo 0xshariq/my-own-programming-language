@@ -1,6 +1,8 @@
 // A simple compiler for a custom programming language with Hindi-like keywords
 // This compiler includes a runner function to execute the compiled code directly
 
+const fs = require('fs');
+
 // Lexer: Converts input code into tokens
 function lexer(input) {
     const tokens = [];
@@ -100,38 +102,51 @@ function parser(tokens) {
     function peek() { return tokens[0]; }
     function consume() { return tokens.shift(); }
 
-    function parseExpressionFromTokens() {
-        // Collect tokens up to a statement boundary (semicolon or punctuation '{' '}' or keyword)
-        const parts = [];
-        while (tokens.length > 0 && !(tokens[0].type === 'punctuation' && (tokens[0].value === ';' || tokens[0].value === '{' || tokens[0].value === '}')) && tokens[0].type !== 'keyword') {
-            parts.push(tokens.shift());
-        }
-        // Build a simple expression AST from collected parts
-        if (parts.length === 0) return null;
-        // Single token
-        if (parts.length === 1) {
-            const t = parts[0];
-            if (t.type === 'number') return { type: 'Literal', value: t.value };
-            if (t.type === 'string') return { type: 'Literal', value: t.value };
-            if (t.type === 'identifier') return { type: 'Identifier', name: t.value };
-        }
-        // Very simple binary expression parsing (left op right, left associative)
-        let left = null;
-        let i = 0;
-        function toNode(tok) {
-            if (tok.type === 'number') return { type: 'Literal', value: tok.value };
-            if (tok.type === 'string') return { type: 'Literal', value: tok.value };
-            if (tok.type === 'identifier') return { type: 'Identifier', name: tok.value };
-            return null;
-        }
-        left = toNode(parts[i++]);
-        while (i < parts.length) {
-            const op = parts[i++];
-            const rightTok = parts[i++];
-            const right = toNode(rightTok);
-            left = { type: 'BinaryExpression', operator: op.value, left, right };
+    // Expression parser with operator precedence (Pratt-like)
+    const PRECEDENCE = {
+        '||': 1,
+        '&&': 2,
+        '==': 3, '!=': 3,
+        '>': 4, '<': 4, '>=': 4, '<=': 4,
+        '+': 5, '-': 5,
+        '*': 6, '/': 6, '%': 6,
+    };
+
+    function isExpressionBoundary(tok) {
+        return !tok || tok.type === 'punctuation' && (tok.value === ';' || tok.value === '}' || tok.value === ')' || tok.value === '{') || tok.type === 'keyword';
+    }
+
+    function parseExpression(precedence = 0) {
+        let left = parsePrimary();
+        if (!left) return null;
+
+        while (true) {
+            const next = peek();
+            if (!next || next.type !== 'operator') break;
+            const op = next.value;
+            const prec = PRECEDENCE[op] || 0;
+            if (prec <= precedence) break;
+            consume(); // operator
+            const right = parseExpression(prec);
+            left = { type: 'BinaryExpression', operator: op, left, right };
         }
         return left;
+    }
+
+    function parsePrimary() {
+        const t = peek();
+        if (!t) return null;
+        if (t.type === 'number') { consume(); return { type: 'Literal', value: t.value }; }
+        if (t.type === 'string') { consume(); return { type: 'Literal', value: t.value }; }
+        if (t.type === 'identifier') { consume(); return { type: 'Identifier', name: t.value }; }
+        // Parenthesized expression
+        if (t.type === 'punctuation' && t.value === '(') {
+            consume();
+            const expr = parseExpression(0);
+            if (peek() && peek().type === 'punctuation' && peek().value === ')') consume();
+            return expr;
+        }
+        return null;
     }
 
     function parseBlock() {
@@ -160,7 +175,7 @@ function parser(tokens) {
                 let value = null;
                 if (peek() && peek().type === 'operator' && peek().value === '=') {
                     consume(); // =
-                    value = parseExpressionFromTokens();
+                    value = parseExpression(0);
                 }
                 if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
                 return { type: 'VariableDeclaration', name, value };
@@ -168,21 +183,21 @@ function parser(tokens) {
             // print
             if (t.value === 'bol') {
                 consume();
-                const expr = parseExpressionFromTokens();
+                const expr = parseExpression(0);
                 if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
                 return { type: 'PrintStatement', expression: expr };
             }
             // if with support for 'nahitoh' (else-if) chains and 'warna' (else)
             if (t.value === 'agar') {
                 consume();
-                const test = parseExpressionFromTokens();
+                const test = parseExpression(0);
                 const consequent = parseBlock();
 
                 // collect any else-if (nahitoh) chains
                 const chain = [];
                 while (peek() && peek().type === 'keyword' && peek().value === 'nahitoh') {
                     consume();
-                    const ntest = parseExpressionFromTokens();
+                    const ntest = parseExpression(0);
                     const nconsequent = parseBlock();
                     chain.push({ test: ntest, consequent: nconsequent });
                 }
@@ -205,22 +220,50 @@ function parser(tokens) {
             // while / loop
             if (t.value === 'lagataar') {
                 consume();
-                const test = parseExpressionFromTokens();
+                const test = parseExpression(0);
                 const body = parseBlock();
                 return { type: 'WhileStatement', test, body };
             }
             // for-like loop (jabtak) - basic form: jabtak <test> { ... }
             if (t.value === 'jabtak') {
+                // full for-syntax: jabtak ( init ; test ; update ) { ... }
                 consume();
-                const test = parseExpressionFromTokens();
+                let init = null, test = null, update = null;
+                if (peek() && peek().type === 'punctuation' && peek().value === '(') {
+                    consume(); // (
+                    // init: either a declaration (ye ...) or an expression
+                    if (peek() && peek().type === 'keyword' && peek().value === 'ye') {
+                        consume(); // ye
+                        const idTok = consume();
+                        const name = idTok ? idTok.value : null;
+                        let val = null;
+                        if (peek() && peek().type === 'operator' && peek().value === '=') { consume(); val = parseExpression(0); }
+                        init = { type: 'VariableDeclaration', name, value: val };
+                    } else if (!(peek() && peek().type === 'punctuation' && peek().value === ';')) {
+                        init = parseExpression(0);
+                    }
+                    // consume semicolon
+                    if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
+
+                    // test
+                    if (!(peek() && peek().type === 'punctuation' && peek().value === ';')) {
+                        test = parseExpression(0);
+                    }
+                    if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
+
+                    // update
+                    if (!(peek() && peek().type === 'punctuation' && peek().value === ')')) {
+                        update = parseExpression(0);
+                    }
+                    if (peek() && peek().type === 'punctuation' && peek().value === ')') consume();
+                }
                 const body = parseBlock();
-                // represent as ForStatement with null init/update for now
-                return { type: 'ForStatement', init: null, test, update: null, body };
+                return { type: 'ForStatement', init, test, update, body };
             }
             // return
             if (t.value === 'wapas') {
                 consume();
-                const arg = parseExpressionFromTokens();
+                const arg = parseExpression(0);
                 if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
                 return { type: 'ReturnStatement', argument: arg };
             }
@@ -247,7 +290,7 @@ function parser(tokens) {
             return null;
         }
         // otherwise, expression statement
-        const expr = parseExpressionFromTokens();
+        const expr = parseExpression(0);
         if (peek() && peek().type === 'punctuation' && peek().value === ';') consume();
         return expr ? { type: 'ExpressionStatement', expression: expr } : null;
     }
@@ -276,7 +319,7 @@ function generator(node) {
             case 'WhileStatement':
                 return `while (${gen(n.test)}) ${gen(n.body)}`;
             case 'ForStatement':
-                return `for (${n.init ? gen(n.init).replace(/;$/, '') : ''}; ${gen(n.test)}; ${n.update ? gen(n.update).replace(/;$/, '') : ''}) ${gen(n.body)}`;
+                return `for (${n.init ? (n.init.type === 'VariableDeclaration' ? ('let ' + n.init.name + ' = ' + (gen(n.init.value) || '')) : gen(n.init).replace(/;$/, '')) : ''}; ${n.test ? gen(n.test) : ''}; ${n.update ? gen(n.update).replace(/;$/, '') : ''}) ${gen(n.body)}`;
             case 'ReturnStatement':
                 return `return ${gen(n.argument)};`;
             case 'BreakStatement':
@@ -306,23 +349,50 @@ function compiler(input) {
     const output = generator(ast);
     return output;
 }
-// Runner: Executes the compiled code
+// Runner: executes compiled code (returns compiled JS string)
 function runner(code) {
     const compiledCode = compiler(code);
-    eval(compiledCode);
+    try {
+        eval(compiledCode);
+    } catch (e) {
+        console.error('Runtime error during runner execution:', e);
+        throw e;
+    }
+    return compiledCode;
 }
 
 const code = `
 ye x = 10;
-ye y = 20;
-
-ye sum = x + y;
-bol sum;
-agar sum > 20 {
-    bol "Sum is greater than 20";
+bol x;
+agar x > 5 {
+    bol "big";
+} nahitoh x == 5 {
+    bol "five";
 } warna {
-    bol "Sum is 20 or less";
+    bol "small";
 }
 `;
 
-runner(code);
+// CLI: accept a source file (e.g. .shar) as first argument; otherwise run the embedded example
+if (require.main === module) {
+        const arg = process.argv[2];
+        if (arg) {
+                const path = arg;
+                if (!fs.existsSync(path)) {
+                        console.error('File not found:', path);
+                        process.exit(2);
+                }
+                const content = fs.readFileSync(path, 'utf8');
+                const compiled = compiler(content);
+                console.log('--- compiled JS ---');
+                console.log(compiled);
+                console.log('--- execution output ---');
+                try { eval(compiled); } catch (e) { console.error('Runtime error:', e); }
+        } else {
+                const compiled = compiler(code);
+                console.log('--- compiled JS ---');
+                console.log(compiled);
+                console.log('--- execution output ---');
+                try { eval(compiled); } catch (e) { console.error('Runtime error:', e); }
+        }
+}
