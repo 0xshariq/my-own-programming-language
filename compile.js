@@ -361,18 +361,6 @@ function runner(code) {
     return compiledCode;
 }
 
-const code = `
-ye x = 10;
-bol x;
-agar x > 5 {
-    bol "big";
-} nahitoh x == 5 {
-    bol "five";
-} warna {
-    bol "small";
-}
-`;
-
 // CLI: accept a source file (e.g. .shar) as first argument; otherwise run the embedded example
 if (require.main === module) {
         const arg = process.argv[2];

@@ -1,3 +1,84 @@
+# My Own Programming Language
+
+This repository contains a tiny toy programming language with Hindi-like keywords (for learning). Source files use the extension `.shar` by convention in this project, but any file name works.
+
+This README explains how to run a `.shar` file with the included `compile.js` runner and a few usage examples.
+
+Requirements
+
+- Node.js (v14+ recommended)
+
+Quick usage
+
+- Run a `.shar` source file directly (compile then execute):
+
+```bash
+# from the project root
+node compile.js path/to/your-file.shar
+```
+
+When you run the command above the script will:
+- compile the `.shar` source to JavaScript and print the compiled JS,
+- then execute the compiled JS and print any program output (for example `bol` statements).
+
+Compile-only (print compiled JS without executing)
+
+If you only want the compiled JavaScript source but not execute it, run the command and redirect to a file then inspect it:
+
+```bash
+node compile.js path/to/your-file.shar > out.js
+# edit or inspect out.js; if you want to run the compiled JS:
+node out.js
+```
+
+Make a small launcher for convenience
+
+If you'd like to run `.shar` files like regular scripts, create a tiny wrapper in your project (example `run-shar`):
+
+```bash
+#!/usr/bin/env bash
+node "$(dirname "$0")/compile.js" "$1"
+```
+
+Make it executable:
+
+```bash
+chmod +x run-shar
+./run-shar examples/foo.shar
+```
+
+Notes and behavior
+
+- The runner prints both the compiled JavaScript and the program's execution output, so you can inspect the JS the compiler produced.
+- `.shar` is just a suggested file extension — the compiler reads plain text. You can use any extension.
+- The compiler uses `eval()` to run compiled code (via `runner` / CLI). Do not run untrusted `.shar` files with this tool.
+
+Example `.shar` file (save as `example.shar`):
+
+```shar
+ye x = 10;
+ye y = 20;
+ye sum = x + y;
+bol sum;
+agar sum > 20 {
+  bol "Sum is greater than 20";
+} warna {
+  bol "Sum is 20 or less";
+}
+```
+
+Common errors
+
+- "File not found": make sure the path you passed to `node compile.js` exists.
+- Syntax errors in `.shar` source: the compiler is minimal and may produce unclear errors; check tokens and punctuation (`;`, `{`, `}`) first.
+
+Next steps I can help with
+
+- Add a small CLI flag `--compile-only` to only print compiled JS without execution.
+- Create a proper executable `shar` interpreter script and install it into your PATH for personal use.
+- Add tests or examples under an `examples/` directory.
+
+If you want any of those, tell me which and I will implement it.
 # This is only for learning purposes, how the programming languages works
 
 ## My Own Programming Language — Keywords Reference
