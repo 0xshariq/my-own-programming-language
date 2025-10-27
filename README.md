@@ -1,3 +1,5 @@
+# This is only for learning purposes, how the programming languages works
+
 # My Own Programming Language — Keywords Reference
 
 This README documents the language keywords supported by the simple compiler in `compile.js`. The compiler is minimal and produces JavaScript code; the following describes the keywords and how they are parsed/generated.
