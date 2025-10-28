@@ -1,0 +1,23 @@
+{
+  "name": "my-own-programming-language",
+  "version": "1.0.0",
+  "description": "This repository contains a tiny toy programming language with Hindi-like keywords (for learning). Source files use the extension `.shar` by convention in this project, but any file name works.",
+  "homepage": "https://github.com/0xshariq/my-own-programming-language#readme",
+  "bugs": {
+    "url": "https://github.com/0xshariq/my-own-programming-language/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xshariq/my-own-programming-language.git"
+  },
+  "license": "ISC",
+  "author": "Sharique Chaudhary",
+  "type": "commonjs",
+  "main": "compile.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

@@ -1,9 +1,0 @@
-ye x = 10;
-bol x;
-agar x > 5 {
-	bol "big";
-} nahitoh x == 5 {
-	bol "five";
-} warna {
-	bol "small";
-}

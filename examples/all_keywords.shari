@@ -1,0 +1,5 @@
+x: number
+y: number
+i: number
+adder(a:number,b:number):number
+sayHello():void

@@ -1,0 +1,34 @@
+// Example demonstrating most keywords
+
+karya adder(a, b) {
+  // returns sum
+  wapas a + b;
+}
+
+ye x = 10;
+ye y = 15;
+bol x + y;
+
+agar x > y {
+  bol "x greater";
+} nahitoh x == y {
+  bol "equal";
+} warna {
+  bol "y greater";
+}
+
+// for-like loop: jabtak ( init ; test ; update ) { .. }
+jabtak (ye i = 0; i < 3; i = i + 1) {
+  agar i == 1 { chhod; }
+  bol i;
+}
+
+// while loop
+lagataar x < 12 {
+  x = x + 1;
+  agar x == 12 { ruk; }
+  bol x;
+}
+
+// function declared above (adder) — calling functions isn't yet fully supported in parser,
+// but declaration demonstrates the 'karya' and 'wapas' keywords.
