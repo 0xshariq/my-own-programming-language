@@ -1,5 +1,0 @@
-url: string
-result1: any
-result2: any
-getTodo(): Promise<any>
-getTodo2(): Promise<any>

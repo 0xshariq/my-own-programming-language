@@ -5,13 +5,10 @@ const { runFile, runString } = require('./lib/runner');
 
 // Small embedded example used when no file is provided
 const example = `
-aasynk karya getTodo() {
-  ye url = "https://jsonplaceholder.typicode.com/todos/100";
-  ye data = pratiksha lao(url);
-  bol data.title;
+karya add(a, b) {
+  wapas a + b;
 }
-
-getTodo();
+  bol add(5, 7);
 `;
 
 if (require.main === module) {
