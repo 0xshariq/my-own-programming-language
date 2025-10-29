@@ -174,3 +174,34 @@ lagataar i < 5 {
 	chhod; // continue
 }
 ```
+
+JSON / Fetching APIs
+--------------------
+
+This language includes a small helper to make HTTP requests and parse JSON easily.
+
+- `lao` — a fetch helper (Hindi: "bring") that maps to JavaScript's `fetch` and automatically
+  parses the response as JSON when awaited.
+ - `mangao` — alternative fetch helper (Hindi: "mangao") equivalent to `lao`; if you already use
+   `lao` you don't need to change anything. Both map to `fetch(...).then(r => r.json())`.
+- `aasynk` — keyword to declare an async function (prefix to `karya`, e.g. `aasynk karya ...`)
+- `pratiksha` — `await` equivalent; use to wait on Promises returned by `lao` or other async calls.
+
+Example — fetch JSON from an API and print a field:
+
+```shar
+aasynk karya getAndPrint() {
+  ye url = "https://jsonplaceholder.typicode.com/todos/1";
+  ye data = pratiksha lao(url); // lao(...) returns a promise that resolves to parsed JSON
+  bol data.title;
+}
+
+getAndPrint();
+```
+
+Notes:
+
+- `lao(url)` compiles to `fetch(url).then(r => r.json())`. When you write `pratiksha lao(url)` the
+  compiled JS becomes `await fetch(url).then(r => r.json())` which resolves to the parsed JSON object.
+- The compiler's `--compile-only` mode prints the AST and the compiled JS so you can inspect how
+  requests and JSON parsing are translated before running the code.
