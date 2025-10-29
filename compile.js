@@ -3,7 +3,12 @@ const fs = require('fs');
 const { runFile, runString } = require('./lib/runner');
 
 // Small embedded example used when no file is provided
-const example = `ye x = 10; ye y = 20; bol x + y;`;
+const example = `
+karya sum(x,y) {
+ bol x + y;
+}
+sum(10,20)
+`;
 
 if (require.main === module) {
     const args = process.argv.slice(2);
