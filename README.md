@@ -123,85 +123,156 @@ Keywords
 
 - `ruk` — break
 
-  - Syntax: `ruk;`
-  - Semantics: compiles to `break;` inside loops.
+  # My Own Programming Language
 
-- `chhod` — continue
+  Tiny toy language with Hindi-style keywords. Source files commonly use the `.shar` extension.
 
-  - Syntax: `chhod;`
-  - Semantics: compiles to `continue;` inside loops.
+  This README shows how to run `.shar` files with the included `compile.js` runner and documents
+  the language's keywords and the added JSON/fetch helpers.
 
-- `wapas` — return
-  - Syntax: `wapas <expression>;`
-  - Semantics: compiles to `return <expression>;` (useful inside functions — the compiler currently provides minimal function support).
+  Requirements
 
-Literals and other tokens
+  - Node.js (v14+ recommended)
 
-- Strings: enclosed in single or double quotes, e.g. `"hello"` or `'hi'`.
-- Numbers: simple integer literals (sequence of digits).
-- Identifiers: ASCII letters only in this simple lexer (e.g. `x`, `sum`).
-- Operators: `+ - * / % = > < >= <= == !=` (two-character equality/relational operators supported).
-- Punctuation: `(` `)` `{` `}` `;` `,`
+  Quick start
 
-Notes and limitations
+  - Run a `.shar` file (compile and execute):
 
-- The parser is intentionally small and sometimes permissive; expression parsing is a very simple left-associative binary parser with no operator precedence. That means `1 + 2 * 3` will be parsed as `(1 + 2) * 3`.
-- `jabtak` currently acts like a `for` with only a condition (i.e., `for (; condition ;) { ... }`). If you want traditional `for (init; cond; update)` support we can extend the syntax and parser.
-- The compiler emits JavaScript source and the `runner` helper does a `eval()` on the compiled JS. Use carefully and avoid running untrusted input.
+  ```bash
+  # from the project root
+  node compile.js path/to/your-file.shar
+  ```
 
-Examples
+  By default the runner prints the compiled JavaScript and then executes it (via eval). To only
+  see the compiled JS (no execution) use:
 
-Example 1 — conditionals and printing:
+  ```bash
+  node compile.js --compile-only path/to/your-file.shar
+  ```
 
-```
-ye x = 10;
-bol x;
-agar x > 5 {
-	bol "big";
-} nahitoh x == 5 {
-	bol "five";
-} warna {
-	bol "small";
-}
-```
+  If you prefer to capture the compiled JS to inspect it later:
 
-Example 2 — loops and break/continue:
+  ```bash
+  node compile.js path/to/your-file.shar > out.js
+  node out.js
+  ```
 
-```
-ye i = 0;
-lagataar i < 5 {
-	i = i + 1;
-	chhod; // continue
-}
-```
+  Make a small wrapper to run `.shar` files directly:
 
-JSON / Fetching APIs
---------------------
+  ```bash
+  #!/usr/bin/env bash
+  node "$(dirname "$0")/compile.js" "$1"
+  ```
 
-This language includes a small helper to make HTTP requests and parse JSON easily.
+  Keywords & quick reference
+  --------------------------
 
-- `lao` — a fetch helper (Hindi: "bring") that maps to JavaScript's `fetch` and automatically
-  parses the response as JSON when awaited.
- - `mangao` — alternative fetch helper (Hindi: "mangao") equivalent to `lao`; if you already use
-   `lao` you don't need to change anything. Both map to `fetch(...).then(r => r.json())`.
-- `aasynk` — keyword to declare an async function (prefix to `karya`, e.g. `aasynk karya ...`)
-- `pratiksha` — `await` equivalent; use to wait on Promises returned by `lao` or other async calls.
+  The compiler produces JavaScript. The important keywords are:
 
-Example — fetch JSON from an API and print a field:
+  - `ye` — variable declaration (`let`). Syntax: `ye x = 10;`
+  - `sthayi` — constant declaration (`const`). Syntax: `sthayi pi = 3;`
+  - `bol` — print statement. Compiles to `console.log(...)`.
+  - `agar` / `nahitoh` / `warna` — `if` / `else if` / `else` chains.
+  - `lagataar` — `while` loop.
+  - `jabtak` — `for`-like loop (currently limited syntax).
+  - `ruk` — `break`.
+  - `chhod` — `continue`.
+  - `wapas` — `return` inside functions.
+  - `karya` — function declaration. Prefix with `aasynk` to make it async: `aasynk karya name(...) {}`.
+  - `aasynk` — async prefix (for `karya` and async arrow expressions).
+  - `pratiksha` — `await` equivalent for promises.
+  - `lao` / `mangao` — fetch helpers that request JSON and return the parsed object when awaited.
 
-```shar
-aasynk karya getAndPrint() {
-  ye url = "https://jsonplaceholder.typicode.com/todos/1";
-  ye data = pratiksha lao(url); // lao(...) returns a promise that resolves to parsed JSON
-  bol data.title;
-}
+  Notes and limitations
 
-getAndPrint();
-```
+  - The compiler is intentionally small. Expression parsing supports common operators but is
+    simplified; for example operator precedence may not match full JavaScript in all cases.
+  - The runner uses `eval()` to execute compiled JS. Avoid running untrusted `.shar` files.
 
-Notes:
+  Examples
+  --------
 
-- `lao(url)` compiles to `fetch(url).then(r => r.json())`. When you write `pratiksha lao(url)` the
-  compiled JS becomes `await fetch(url).then(r => r.json())` which resolves to the parsed JSON object.
-- The compiler's `--compile-only` mode prints the AST and the compiled JS so you can inspect how
-  requests and JSON parsing are translated before running the code.
+  Conditionals and printing
+
+  ```shar
+  ye x = 10;
+  bol x;
+  agar x > 5 {
+    bol "big";
+  } nahitoh x == 5 {
+    bol "five";
+  } warna {
+    bol "small";
+  }
+  ```
+
+  Loops
+
+  ```shar
+  ye i = 0;
+  lagataar i < 5 {
+    i = i + 1;
+    chhod; // continue
+  }
+  ```
+
+  JSON / Fetching APIs
+  --------------------
+
+  This language provides helpers for HTTP + JSON:
+
+  - `lao(url)` — calls fetch(url) and automatically parses JSON. Use with `pratiksha` to await parsed JSON.
+  - `mangao(url)` — alias for `lao` (same behavior).
+  - `aasynk` — async prefix; `aasynk karya` declares an async function.
+  - `pratiksha` — await equivalent.
+
+  Example — fetch JSON and print a field:
+
+  ```shar
+  aasynk karya getAndPrint() {
+    ye url = "https://jsonplaceholder.typicode.com/todos/1";
+    ye data = pratiksha lao(url);
+    bol data.title;
+  }
+
+  getAndPrint();
+  ```
+
+  Notes about fetch helper behavior
+
+  - Calls to `lao(...)` and `mangao(...)` are emitted as calls to a runtime helper `__shar_fetch(...)`.
+    The runner prepends an implementation that:
+    - Optionally prefixes relative URLs with a `baseUrl` from `shar.config.json` or the
+      `SHAR_BASE_URL` environment variable.
+    - Optionally applies default headers from `shar.config.json` or `SHAR_DEFAULT_HEADERS` (JSON).
+    - Calls `fetch(finalUrl, options).then(r => r.json())` and returns that promise.
+
+  Configuration
+  -------------
+
+  You can optionally create `shar.config.json` in the project root with this shape:
+
+  ```json
+  {
+    "baseUrl": "https://api.example.com/v1",
+    "defaultHeaders": { "X-Api-Key": "secret" }
+  }
+  ```
+
+  Or set environment variables:
+
+  ```bash
+  export SHAR_BASE_URL="https://api.example.com/v1"
+  export SHAR_DEFAULT_HEADERS='{"X-Api-Key":"secret"}'
+  ```
+
+  Examples folder
+  ---------------
+
+  See `examples/fetch_example.shar` for a small demo that uses `lao` and `mangao` with async/await.
+
+  If you'd like, I can:
+
+  - Tidy further (add more examples),
+  - Add a `--allow-network` opt-in flag, or
+  - Improve static typing for JSON responses.

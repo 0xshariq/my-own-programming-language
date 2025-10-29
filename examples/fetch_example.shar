@@ -1,0 +1,18 @@
+// fetch example using lao and mangao
+
+aasynk karya getTodo() {
+  ye url = "https://jsonplaceholder.typicode.com/todos/1";
+  ye data = pratiksha lao(url);
+  bol data.title;
+}
+
+getTodo();
+
+// example using mangao alias
+aasynk karya getTodo2() {
+  ye url = "https://jsonplaceholder.typicode.com/todos/2";
+  ye data = pratiksha mangao(url);
+  bol data.title;
+}
+
+getTodo2();

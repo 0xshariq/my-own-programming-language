@@ -4,10 +4,13 @@ const { runFile, runString } = require('./lib/runner');
 
 // Small embedded example used when no file is provided
 const example = `
-karya sum(x,y) {
- bol x + y;
+aasynk karya getTodo() {
+  ye url = "https://jsonplaceholder.typicode.com/todos/1";
+  ye data = pratiksha lao(url);
+  bol data.title;
 }
-sum(10,20)
+
+getTodo();
 `;
 
 if (require.main === module) {
