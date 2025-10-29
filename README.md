@@ -1,4 +1,6 @@
-# My Own Programming Language
+# This is only for learning purposes, how the programming languages works
+
+## My Own Programming Language
 
 This repository contains a tiny toy programming language with Hindi-like keywords (for learning). Source files use the extension `.shar` by convention in this project, but any file name works.
 
@@ -77,13 +79,6 @@ Next steps I can help with
 - Add a small CLI flag `--compile-only` to only print compiled JS without execution.
 - Create a proper executable `shar` interpreter script and install it into your PATH for personal use.
 - Add tests or examples under an `examples/` directory.
-
-If you want any of those, tell me which and I will implement it.
-# This is only for learning purposes, how the programming languages works
-
-## My Own Programming Language — Keywords Reference
-
-This README documents the language keywords supported by the simple compiler in `compile.js`. The compiler is minimal and produces JavaScript code; the following describes the keywords and how they are parsed/generated.
 
 Keywords
 
